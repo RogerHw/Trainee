@@ -347,6 +347,23 @@
                 }
             }
         },
+        "mark_duplicates": {
+                "keep_duplicates": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-save",
+                    "help_text": "Set this parameter to skip filtering of duplicates marked by Picard Markduplicates.",
+                    "description": "Keep read duplications marked by picard MarkDuplicates."
+                },
+                "save_markduplicates_bam": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-save",
+                    "help_text": "Set this parameter to save bam file with marked duplicate reads.",
+                    "description": "Store bam with marked duplicate reads."
+                }
+            }
+        },
         "bwa_meth_options": {
             "title": "bwa-meth options",
             "type": "object",
@@ -385,6 +402,12 @@
                     "description": "Skip read trimming.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "skip_markduplicates": {
+                    "type": "boolean",
+                    "default": false,
+                    "fa_icon": "fas fa-fast-forward",
+                    "help_text": "Set this parameter to skip annotating and filtering of duplicates marked by Picard Markduplicates.",
+                    "description": "Skip Picard MarkDuplicates and duplicate filtering"
                 "skip_deduplication": {
                     "type": "boolean",
                     "description": "Skip deduplication step after alignment.",
