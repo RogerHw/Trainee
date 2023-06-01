@@ -9,6 +9,8 @@ include { BISMARK_METHYLATIONEXTRACTOR                } from '../../modules/nf-c
 include { BISMARK_COVERAGE2CYTOSINE                   } from '../../modules/nf-core/bismark/coverage2cytosine/main'
 include { BISMARK_REPORT                              } from '../../modules/nf-core/bismark/report/main'
 include { BISMARK_SUMMARY                             } from '../../modules/nf-core/bismark/summary/main'
+include { PICARD_MARKDUPLICATES                       } from '../../modules/nf-core/picard/markduplicates/main' 
+include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_DEDUPLICATED } from '../../modules/nf-core/samtools/index/main'
 
 workflow BISMARK {
     take:
@@ -51,7 +53,27 @@ workflow BISMARK {
         alignment_reports = BISMARK_ALIGN.out.report.join(BISMARK_DEDUPLICATE.out.report)
         versions = versions.mix(BISMARK_DEDUPLICATE.out.versions)
     }
+   
+    picard_metrics = Channel.empty()
+    picard_version = Channel.empty()
+   
+    /*
+        * Run Picard MarkDuplicates
+        */
 
+    PICARD_MARKDUPLICATES (
+        SAMTOOLS_SORT_ALIGNED.out.bam,
+        fasta,
+        fasta_index
+    )
+    
+    SAMTOOLS_INDEX_DEDUPLICATED (PICARD_MARKDUPLICATES.out.bam)
+    alignments = PICARD_MARKDUPLICATES.out.bam
+    bam_index = SAMTOOLS_INDEX_DEDUPLICATED.out.bai
+    picard_metrics = PICARD_MARKDUPLICATES.out.metrics
+    picard_version = PICARD_MARKDUPLICATES.out.versions
+    versions = versions.mix(PICARD_MARKDUPLICATES.out.versions)
+    
     /*
      * Run bismark_methylation_extractor
      */
@@ -107,6 +129,7 @@ workflow BISMARK {
      * Collect MultiQC inputs
      */
     BISMARK_SUMMARY.out.summary.ifEmpty([])
+        .mix(picard_metrics.collect{ it[1] }.ifEmpty([]))
         .mix(alignment_reports.collect{ it[1] })
         .mix(alignment_reports.collect{ it[2] })
         .mix(BISMARK_METHYLATIONEXTRACTOR.out.report.collect{ it[1] })
