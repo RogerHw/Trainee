@@ -165,7 +165,7 @@ workflow METHYLSEQ {
             reads,
             PREPARE_GENOME.out.bismark_index,
             params.skip_deduplication || params.rrbs,
-            params.cytosine_report || params.nomeseq
+            params.cytosine_report || params.nomeseq,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fasta_index
 
