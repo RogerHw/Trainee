@@ -18,6 +18,9 @@ workflow BISMARK {
     bismark_index      // channel: /path/to/BismarkIndex/
     skip_deduplication // boolean: whether to deduplicate alignments
     cytosine_report    // boolean: whether the run coverage2cytosine
+    fasta   
+    fai 
+ 
 
     main:
     versions = Channel.empty()
