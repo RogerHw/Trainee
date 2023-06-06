@@ -9,7 +9,7 @@ include { BISMARK_METHYLATIONEXTRACTOR                } from '../../modules/nf-c
 include { BISMARK_COVERAGE2CYTOSINE                   } from '../../modules/nf-core/bismark/coverage2cytosine/main'
 include { BISMARK_REPORT                              } from '../../modules/nf-core/bismark/report/main'
 include { BISMARK_SUMMARY                             } from '../../modules/nf-core/bismark/summary/main'
-include { PICARD_MARKDUPLICATES                       } from '../../modules/nf-core/picard/markduplicates/main' 
+include { PICARD_MARKDUPLICATES as PICARD_OPTICALDUPLICATES } from '../../modules/nf-core/picard/markduplicates/main' 
 include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_DEDUPLICATED } from '../../modules/nf-core/samtools/index/main'
 
 workflow BISMARK {
@@ -64,18 +64,18 @@ workflow BISMARK {
         * Run Picard MarkDuplicates
         */
 
-    PICARD_MARKDUPLICATES (
+    PICARD_OPTICALDUPLICATES (
         SAMTOOLS_SORT_ALIGNED.out.bam,
         fasta,
         fasta_index
     )
     
-    SAMTOOLS_INDEX_DEDUPLICATED (PICARD_MARKDUPLICATES.out.bam)
-    alignments = PICARD_MARKDUPLICATES.out.bam
+    SAMTOOLS_INDEX_DEDUPLICATED (PICARD_OPTICALDUPLICATES.out.bam)
+    alignments = PICARD_OPTICALDUPLICATES.out.bam
     bam_index = SAMTOOLS_INDEX_DEDUPLICATED.out.bai
-    picard_metrics = PICARD_MARKDUPLICATES.out.metrics
-    picard_version = PICARD_MARKDUPLICATES.out.versions
-    versions = versions.mix(PICARD_MARKDUPLICATES.out.versions)
+    picard_metrics = PICARD_OPTICALDUPLICATES.out.metrics
+    picard_version = PICARD_OPTICALDUPLICATES.out.versions
+    versions = versions.mix(PICARD_OPTICALDUPLICATES.out.versions)
     
     /*
      * Run bismark_methylation_extractor
