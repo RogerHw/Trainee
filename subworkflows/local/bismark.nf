@@ -19,7 +19,7 @@ workflow BISMARK {
     skip_deduplication // boolean: whether to deduplicate alignments
     cytosine_report    // boolean: whether the run coverage2cytosine
     fasta   
-    fai 
+    fasta_index
  
 
     main:
