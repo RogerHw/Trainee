@@ -24,7 +24,8 @@ workflow BISMARK {
 
     main:
     versions = Channel.empty()
-
+    picard_metrics = Channel.empty()
+    picard_version = Channel.empty()
 
     /*
      * Align with bismark
@@ -44,8 +45,25 @@ workflow BISMARK {
     versions = versions.mix(SAMTOOLS_SORT_ALIGNED.out.versions)
 
     if (skip_deduplication) {
-        alignments = BISMARK_ALIGN.out.bam
         alignment_reports = BISMARK_ALIGN.out.report.map{ meta, report -> [ meta, report, [] ] }
+        
+        /*
+        * Run Picard MarkDuplicates as Picard Opticalduplicates.
+        */
+
+        PICARD_OPTICALDUPLICATES (
+            SAMTOOLS_SORT_ALIGNED.out.bam,
+            fasta,
+            fasta_index
+        )
+        
+        SAMTOOLS_INDEX_DEDUPLICATED (PICARD_OPTICALDUPLICATES.out.bam)
+        alignments = PICARD_OPTICALDUPLICATES.out.bam
+        bam_index = SAMTOOLS_INDEX_DEDUPLICATED.out.bai
+        picard_metrics = PICARD_OPTICALDUPLICATES.out.metrics
+        picard_version = PICARD_OPTICALDUPLICATES.out.versions
+        versions = versions.mix(PICARD_OPTICALDUPLICATES.out.versions)
+       
     } else {
         /*
         * Run deduplicate_bismark
@@ -57,25 +75,6 @@ workflow BISMARK {
         versions = versions.mix(BISMARK_DEDUPLICATE.out.versions)
     }
    
-    picard_metrics = Channel.empty()
-    picard_version = Channel.empty()
-   
-    /*
-        * Run Picard MarkDuplicates
-        */
-
-    PICARD_OPTICALDUPLICATES (
-        SAMTOOLS_SORT_ALIGNED.out.bam,
-        fasta,
-        fasta_index
-    )
-    
-    SAMTOOLS_INDEX_DEDUPLICATED (PICARD_OPTICALDUPLICATES.out.bam)
-    alignments = PICARD_OPTICALDUPLICATES.out.bam
-    bam_index = SAMTOOLS_INDEX_DEDUPLICATED.out.bai
-    picard_metrics = PICARD_OPTICALDUPLICATES.out.metrics
-    picard_version = PICARD_OPTICALDUPLICATES.out.versions
-    versions = versions.mix(PICARD_OPTICALDUPLICATES.out.versions)
     
     /*
      * Run bismark_methylation_extractor
